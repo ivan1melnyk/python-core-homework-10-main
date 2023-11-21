@@ -34,22 +34,21 @@ class Record:
         self.phones.append(phone)
 
     def remove_phone(self, phone):
-        self.phones = [number for number in self.phones if number != phone]
+        phone_obj = self.find_phone(phone)
+        if phone_obj:
+            self.phones.remove(phone_obj)
 
     def edit_phone(self, old_number, new_number):
-        if old_number not in self.phones:
-            for i in range(len(self.phones)):
-                the_number = self.phones[i]
-                if str(the_number) == old_number:
-                    # print(f'We change {self.name}\'s {old_number} on {new_number}')
-                    self.phones[i] = Phone(new_number)
+        phone_obj = self.find_phone(old_number)
+        if phone_obj:
+            phone_obj.value = new_number
         else:
             raise ValueError
 
     def find_phone(self, number):
         for phone in self.phones:
-            if str(phone) == number:
-                return self.phones
+            if phone.value == number:
+                return phone
 
     def __str__(self):
         return f"Contact name: {self.name}, phones: {'; '.join(p.value for p in self.phones)}"
