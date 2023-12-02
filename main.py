@@ -1,5 +1,6 @@
 from collections import UserDict
-import re
+import csv
+import os
 
 
 class Field:
@@ -71,6 +72,57 @@ class AddressBook(UserDict):
         # del self.data[name]
         self.data = {r_name: record for r_name,
                      record in self.data.items() if str(r_name) != name}
+
+    def search(self, value):
+        search_list = list()
+        if value.isdigit():
+            for address in self.data.values():
+                for phone in address.phones:
+                    if phone.startswith(value):
+                        search_list.append(address)
+            return search_list
+        else:
+            for address in self.data.values():
+                if str(address.name).startswith(value):
+                    search_list.append(address)
+            return search_list
+
+    def dump(self):
+        if os.path.exists('addressbook.csv'):
+            with open('addressbook.csv', 'a', newline='\n') as fh:
+                address_book_disk = self.load()
+                field_names = ['first_name', 'phones']
+                writer = csv.DictWriter(fh, fieldnames=field_names)
+                for address in self.data.values():
+                    if str(address.name) in address_book_disk:
+                        continue
+                    else:
+                        writer.writerow({'first_name': address.name, 'phones': [
+                            str(phone) for phone in address.phones]})
+        else:
+            with open('addressbook.csv', 'a', newline='\n') as fh:
+                field_names = ['first_name', 'phones']
+                writer = csv.DictWriter(fh, fieldnames=field_names)
+                writer.writeheader()
+                for address in self.data.values():
+                    writer.writerow({'first_name': address.name, 'phones': [
+                                    str(phone) for phone in address.phones]})
+
+    def load(self):
+        with open('addressbook.csv', newline='\n') as fh:
+            reader = csv.DictReader(fh)
+            address_book_disk = list()
+            for row in reader:
+                # print(row['first_name'], row['phones'])
+                address_book_disk.append(row['first_name'])
+                if row['first_name'] in self.data:
+                    continue
+                else:
+                    the_record = Record(row['first_name'])
+                    the_record.phones = row['phones']
+                    self.add_record(self, the_record)
+            print(address_book_disk)
+            return address_book_disk
     # реалізація класу
 
 
@@ -83,3 +135,13 @@ if __name__ == '__main__':
 
     for name, record in book.data.items():
         print(record)
+
+    book.dump()
+    book.load()
+
+    print('_________________________________________________')
+
+    for name, record in book.data.items():
+        print(record)
+
+    print(book.search('J'))
